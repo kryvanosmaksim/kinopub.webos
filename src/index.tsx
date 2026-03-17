@@ -2,6 +2,7 @@ import './polyfills';
 import './plugins';
 
 import { render } from 'react-dom';
+import Spotlight from '@enact/spotlight';
 
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -10,6 +11,16 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { sendWebVitalsToGoogleAnalytics } from 'utils/analytics';
 
 const app = <App />;
+
+// Patch native focus to prevent scroll jumps when using the Magic Remote pointer
+const originalFocus = HTMLElement.prototype.focus;
+HTMLElement.prototype.focus = function (options) {
+  if (Spotlight.getPointerMode()) {
+    originalFocus.call(this, { ...options, preventScroll: true });
+  } else {
+    originalFocus.call(this, options);
+  }
+};
 
 // In a browser environment, render instead of exporting
 if (typeof window !== 'undefined') {

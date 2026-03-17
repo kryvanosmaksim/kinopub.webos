@@ -52,3 +52,21 @@ video {
 .bg-black.bg-opacity-70 {
   background-color: rgba(0, 0, 0, 0.7);
 }
+
+/* Menu transition */
+.transition-all {
+  transition-property: all;
+}
+
+.duration-150 {
+  transition-duration: 150ms;
+}
+
+.duration-300 {
+  transition-duration: 300ms;
+}
+
+/* Scroll to top button transitions */
+.transition-opacity {
+  transition-property: opacity;
+}

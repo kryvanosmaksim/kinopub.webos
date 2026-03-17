@@ -1,4 +1,6 @@
+import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import Spotlight from '@enact/spotlight';
 import cx from 'classnames';
 import map from 'lodash/map';
 
@@ -123,14 +125,37 @@ type Props = {
 
 const Menu: React.FC<Props> = ({ className, ...props }) => {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(true);
+
+  const handleFocus = useCallback(() => {
+    if (!Spotlight.getPointerMode()) {
+      setCollapsed(false);
+    }
+  }, []);
+
+  const handleBlur = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    // Only collapse if focus is leaving the nav entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setCollapsed(true);
+    }
+  }, []);
 
   return (
-    <nav className={cx('h-screen w-52 flex flex-col justify-between overflow-y-auto', className)} {...props}>
+    <nav
+      className={cx(
+        'h-screen flex flex-col justify-between overflow-y-auto flex-shrink-0 transition-all duration-300',
+        collapsed ? 'w-14' : 'w-52',
+        className,
+      )}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      {...props}
+    >
       {map(menuItems, (list, idx) => (
         <ul key={idx}>
           {map(list, (item: MenuItem) => (
             <li key={item.href}>
-              <Link href={item.href} icon={item.icon} active={location.pathname.startsWith(item.href)}>
+              <Link href={item.href} icon={item.icon} iconOnly={collapsed} active={location.pathname.startsWith(item.href)}>
                 {item.name}
               </Link>
             </li>

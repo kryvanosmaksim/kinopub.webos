@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import cx from 'classnames';
 import map from 'lodash/map';
 
 import Accordion from 'components/accordion';
@@ -54,7 +55,7 @@ const Select: React.FC<Props> = ({ label, options, defaultValue, value, onChange
 
   return (
     <Accordion open={open} onToggle={setOpen} title={label} subtitle={selectedOption?.title} className={className} disabled={disabled}>
-      <div className="flex flex-wrap">
+      <div className={cx('flex flex-wrap', { 'max-h-60 overflow-y-auto': opts.length > 8 })}>
         {map(opts, (opt) => (
           <Radio
             key={opt.value}

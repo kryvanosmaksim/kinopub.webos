@@ -4,6 +4,7 @@ import map from 'lodash/map';
 
 import { Bool, Season, Video, WatchingStatus } from 'api';
 import Button from 'components/button';
+import CollapsibleList from 'components/collapsibleList';
 import EpisodePicker from 'components/episodePicker';
 import ItemsList from 'components/itemsList';
 import Link from 'components/link';
@@ -318,26 +319,26 @@ const ItemView: React.FC = () => {
               {audios.length > 0 && (
                 <div className="py-2">
                   <Text className="text-gray-500">Перевод</Text>
-                  <div className="flex flex-wrap pl-2">
+                  <CollapsibleList maxVisible={4} className="flex flex-wrap pl-2">
                     {map(audios, (voice, idx) => (
                       <Text className="w-1/2" key={idx}>
                         {voice.name}
                       </Text>
                     ))}
-                  </div>
+                  </CollapsibleList>
                 </div>
               )}
 
               {subtitles.length > 0 && (
                 <div className="py-2">
                   <Text className="text-gray-500">Субтитры</Text>
-                  <div className="flex flex-wrap pl-2">
+                  <CollapsibleList maxVisible={6} className="flex flex-wrap pl-2">
                     {map(subtitles, (subtitle, idx) => (
                       <Text className="w-1/6" key={idx}>
                         {subtitle.name}
                       </Text>
                     ))}
-                  </div>
+                  </CollapsibleList>
                 </div>
               )}
             </div>
@@ -346,13 +347,13 @@ const ItemView: React.FC = () => {
           {!!data?.item?.tracklist?.length && (
             <div className="flex flex-col pb-6">
               <Text className="text-gray-500">Треклист</Text>
-              <div className="flex flex-wrap flex-col">
+              <CollapsibleList maxVisible={6} className="flex flex-wrap flex-col">
                 {map(data?.item.tracklist, (track, idx) => (
                   <Text key={idx}>
                     {idx + 1}. {track.title}
                   </Text>
                 ))}
-              </div>
+              </CollapsibleList>
             </div>
           )}
 
