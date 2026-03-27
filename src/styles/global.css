@@ -42,7 +42,19 @@ video {
 }
 
 [class*='Input_decorator'] {
-  @apply m-0 !important;
+  @apply m-0 border border-gray-700 bg-gray-800 rounded-lg transition-colors overflow-hidden w-full h-14 pb-0 pt-0 !important;
+}
+
+[class*='Input_decorator'].spottable:focus {
+  @apply border-red-600 bg-gray-900 !important;
+}
+
+[class*='Input_decorator'] * {
+  background-color: transparent !important;
+}
+
+[class*='Input_decorator'] [class*='Input_input'] {
+  @apply w-full h-full px-4 text-gray-200 outline-none !important;
 }
 
 .bg-black.bg-opacity-50 {

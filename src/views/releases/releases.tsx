@@ -24,7 +24,7 @@ const getReleaseByType = (releaseType?: ReleaseTypes) => {
 
 const ReleasesView: React.FC = () => {
   const { releaseType = 'popular' } = useParams<RouteParams>();
-  const queryResult = useApiInfinite(`items${capitalize(releaseType) as Capitalize<ReleaseTypes>}`, ['1']);
+  const queryResult = useApiInfinite(`items${capitalize(releaseType) as Capitalize<ReleaseTypes>}`, ['movie']);
   const total = useMemo(() => queryResult.data?.pages?.[0]?.pagination?.total_items, [queryResult.data?.pages]);
   const seoTitle = getReleaseByType(releaseType as ReleaseTypes);
   const title = total ? `${seoTitle} (${total})` : seoTitle;

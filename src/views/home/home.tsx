@@ -72,7 +72,7 @@ const ContinueWatching: React.FC = () => {
   const history = useHistory();
   const { data: serials, isLoading: serialsLoading } = useApi('watchingSerials');
   const { data: movies, isLoading: moviesLoading } = useApi('watchingMovies');
-  const { data: historyData, isLoading: historyLoading } = useApi('history', [0, 100]);
+  const { data: historyData, isLoading: historyLoading } = useApi('history', [1, 100]);
   const items = useMemo(() => {
     const watchingItems = [...(serials?.items || []), ...(movies?.items || [])];
     if (!watchingItems.length) return [];

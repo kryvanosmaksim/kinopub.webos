@@ -427,7 +427,7 @@ class KinopubApiClient extends BaseApiClient {
    * @param page Текущая страница
    * @param perpage Количество на страницу
    */
-  itemsFresh(type: string, page?: number, perpage?: number) {
+  itemsFresh(type?: string, page?: number, perpage?: number) {
     return this.get<ItemsResponse>(`/v1/items/fresh`, { type, page, perpage });
   }
 
@@ -437,7 +437,7 @@ class KinopubApiClient extends BaseApiClient {
    * @param page Текущая страница
    * @param perpage Количество на страницу
    */
-  itemsHot(type: string, page?: number, perpage?: number) {
+  itemsHot(type?: string, page?: number, perpage?: number) {
     return this.get<ItemsResponse>(`/v1/items/hot`, { type, page, perpage });
   }
 
@@ -447,7 +447,7 @@ class KinopubApiClient extends BaseApiClient {
    * @param page Текущая страница
    * @param perpage Количество на страницу
    */
-  itemsPopular(type: string, page?: number, perpage?: number) {
+  itemsPopular(type?: string, page?: number, perpage?: number) {
     return this.get<ItemsResponse>(`/v1/items/popular`, { type, page, perpage });
   }
 

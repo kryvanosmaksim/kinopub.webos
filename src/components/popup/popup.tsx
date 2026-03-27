@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import Spotlight from '@enact/spotlight';
 import cx from 'classnames';
+import uniqueId from 'lodash/uniqueId';
 
 import Scrollable from 'components/scrollable';
 import SpotlightContainer from 'components/spotlightContainer';
@@ -11,10 +12,12 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   closeButton?: KeyboardCodesKeys;
+  id?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-const Popup: React.FC<Props> = ({ visible, onClose, children, className, closeButton = 'Blue', ...props }) => {
+const Popup: React.FC<Props> = ({ visible, onClose, children, className, closeButton = 'Blue', id: passedId, ...props }) => {
   const containerId = useMemo(() => Spotlight.add({}), []);
+  const popupId = useMemo(() => passedId || uniqueId('popup_'), [passedId]);
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -60,7 +63,7 @@ const Popup: React.FC<Props> = ({ visible, onClose, children, className, closeBu
   useButtonEffect('ArrowUp', scrollActiveElementIntoView);
   useButtonEffect('ArrowDown', scrollActiveElementIntoView);
   useButtonEffect(closeButton, handleCloseIfVisible);
-  const hashTrigger = useHashTrigger('popup', handleCloseIfVisible);
+  const hashTrigger = useHashTrigger(popupId, handleCloseIfVisible);
 
   useEffect(() => {
     if (visible) {

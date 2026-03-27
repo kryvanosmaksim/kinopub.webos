@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from 'react-query';
 import { useHistory, useParams } from 'react-router-dom';
 import map from 'lodash/map';
 
@@ -41,17 +42,20 @@ const SimilarItems: React.FC<{ itemId: string; className?: string }> = ({ itemId
 };
 
 const ItemView: React.FC = () => {
+  const queryClient = useQueryClient();
   const history = useHistory();
   const { itemId } = useParams<RouteParams>();
   const posterRef = useRef<HTMLImageElement>(null);
   const [bookmarksPopupVisible, setBookmarksPopupVisible] = useState(false);
   const [episodePickerVisible, setEpisodePickerVisible] = useState(false);
+  const [deletePopupVisible, setDeletePopupVisible] = useState(false);
   const { data, refetch } = useApi('itemMedia', [itemId!], { staleTime: 0 });
   const { data: watchingData, refetch: refetchWatching } = useApi('watchingItem', [itemId!], { staleTime: 0 });
 
   const { watchingToggleAsync } = useApiMutation('watchingToggle');
   const { watchingToggleWatchlistAsync } = useApiMutation('watchingToggleWatchlist');
   const { watchingMarkTimeAsync } = useApiMutation('watchingMarkTime');
+  const { historyClearItemAsync } = useApiMutation('historyClearItem');
 
   // Merge watching data from /v1/watching into item data
   // The watching API returns {status, time} at top level, not nested under "watching"
@@ -179,8 +183,28 @@ const ItemView: React.FC = () => {
         await watchingMarkTimeAsync([itemId!, 30, videoToPlay.number]);
       }
     }
+    queryClient.invalidateQueries('watchingItem');
+    queryClient.invalidateQueries('watchingMovies');
+    queryClient.invalidateQueries('watchingSerials');
     refetchAll();
-  }, [itemId, isSerial, isWatching, videoToPlay, watchingToggleWatchlistAsync, watchingToggleAsync, watchingMarkTimeAsync, refetchAll]);
+  }, [
+    itemId,
+    isSerial,
+    isWatching,
+    videoToPlay,
+    watchingToggleWatchlistAsync,
+    watchingToggleAsync,
+    watchingMarkTimeAsync,
+    refetchAll,
+    queryClient,
+  ]);
+
+  const handleRemoveFromHistory = useCallback(async () => {
+    await historyClearItemAsync([itemId!]);
+    queryClient.invalidateQueries('history');
+    setDeletePopupVisible(false);
+    refetchAll();
+  }, [itemId, historyClearItemAsync, refetchAll, queryClient]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -247,6 +271,23 @@ const ItemView: React.FC = () => {
               <Button icon={isWatching ? 'visibility_off' : 'visibility'} onClick={handleOnVisibilityClick} className="text-blue-600">
                 {isWatching ? 'Не буду смотреть' : 'Буду смотреть'}
               </Button>
+
+              <Button
+                icon="delete"
+                onClick={() => setDeletePopupVisible(true)}
+                className="ml-auto text-gray-500 hover:text-red-500"
+                iconOnly
+              />
+
+              <Popup visible={deletePopupVisible} onClose={() => setDeletePopupVisible(false)} closeButton="Yellow">
+                <Text className="text-xl mb-6">Удалить из истории просмотров?</Text>
+                <div className="flex justify-center mt-4">
+                  <Button onClick={handleRemoveFromHistory} className="mr-8 text-red-500">
+                    Удалить
+                  </Button>
+                  <Button onClick={() => setDeletePopupVisible(false)}>Отмена</Button>
+                </div>
+              </Popup>
             </div>
           )}
         </div>

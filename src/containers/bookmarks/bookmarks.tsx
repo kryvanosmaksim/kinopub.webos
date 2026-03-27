@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useQueryClient } from 'react-query';
 import map from 'lodash/map';
 
 import { Bookmark } from 'api';
@@ -16,6 +17,7 @@ type Props = {
 };
 
 const Bookmarks: React.FC<Props> = ({ itemId }) => {
+  const queryClient = useQueryClient();
   const [createNew, setCreateNew] = useState(false);
   const [newBookmark, setNewBookmark] = useState('');
   const { data, refetch: refetchBookmarks } = useApi('bookmarks');
@@ -27,22 +29,31 @@ const Bookmarks: React.FC<Props> = ({ itemId }) => {
   const handleCheckboxToggle = useCallback(
     (bookmark: Bookmark) => async () => {
       await bookmarkToggleItemAsync([itemId, bookmark.id]);
+      queryClient.invalidateQueries('bookmarkItems');
       refetch();
     },
-    [itemId, bookmarkToggleItemAsync, refetch],
+    [itemId, bookmarkToggleItemAsync, queryClient, refetch],
   );
   const handleCreateNewBookmark = useCallback(async () => {
     if (newBookmark) {
-      const data = (await bookmarkCreateAsync([newBookmark])) as unknown as { folder: Bookmark };
+      try {
+        const data = (await bookmarkCreateAsync([newBookmark])) as unknown as { folder: Bookmark };
 
-      await bookmarkToggleItemAsync([itemId, data.folder.id]);
-      await refetchBookmarks();
-      await refetch();
+        await bookmarkToggleItemAsync([itemId, data.folder.id]);
+        queryClient.invalidateQueries('bookmarkItems');
+        await refetchBookmarks();
+        await refetch();
+      } catch (ex) {
+        console.error(ex);
+      } finally {
+        setCreateNew(false);
+        setNewBookmark('');
+      }
+    } else {
+      setCreateNew(false);
     }
-    setCreateNew(false);
-    setNewBookmark('');
     return false;
-  }, [itemId, newBookmark, bookmarkCreateAsync, refetch, refetchBookmarks, bookmarkToggleItemAsync]);
+  }, [itemId, newBookmark, bookmarkCreateAsync, refetch, refetchBookmarks, queryClient, bookmarkToggleItemAsync]);
 
   const handleKeyDown = useCallback<React.KeyboardEventHandler>(
     (e) => {

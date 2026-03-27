@@ -59,17 +59,19 @@ class BaseApiClient {
         body: data && serialize(data),
       });
 
+      const json = (await response.json()) as T & { error?: string };
+
       if (response.status === 401) {
         this.clearTokens();
       }
 
-      const json = await response.json();
+      if (!response.ok || json.error) {
+        throw new Error(json.error || response.statusText);
+      }
 
       return json as T;
     } catch (ex) {
-      return {
-        error: (ex as Error).toString(),
-      } as unknown as T;
+      throw ex;
     }
   }
 

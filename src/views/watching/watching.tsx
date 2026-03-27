@@ -22,7 +22,7 @@ type WatchingTypes = keyof typeof WATCHING_TYPES_MAP;
 const WatchingView: React.FC = () => {
   const { watchingType = 'serials' } = useParams<RouteParams>();
   const { data, isLoading } = useApi(`watching${capitalize(watchingType) as Capitalize<WatchingTypes>}`);
-  const { data: historyData } = useApi('history', [0, 100]);
+  const { data: historyData } = useApi('history', [1, 100]);
   const total = useMemo(() => sumBy(data?.items, (item) => +(item.new || 0)), [data?.items]);
   const sortedItems = useMemo(() => {
     const items = data?.items;
