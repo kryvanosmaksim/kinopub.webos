@@ -25,6 +25,7 @@ type Props = {
   episodeId?: string;
   seasonId?: string;
   playOnClick?: boolean;
+  onDelete?: () => void;
 };
 
 const VideoItem: React.FC<Props> = ({
@@ -37,6 +38,7 @@ const VideoItem: React.FC<Props> = ({
   episodeId,
   seasonId,
   playOnClick,
+  onDelete,
   children,
 }) => {
   const history = useHistory();
@@ -76,6 +78,14 @@ const VideoItem: React.FC<Props> = ({
     }
   }, [item?.id, disableNavigation, playOnClick, handleOnPlayClick, history]);
 
+  const handleOnDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onDelete?.();
+    },
+    [onDelete],
+  );
+
   useButtonEffect(['Play', 'Red'], handleOnPlayClick);
 
   return (
@@ -89,6 +99,14 @@ const VideoItem: React.FC<Props> = ({
       wrapperClassName={wrapperClassName}
     >
       {children}
+      {isFocused && onDelete && (
+        <div
+          onClick={handleOnDelete}
+          className="absolute top-2 right-2 h-8 w-8 text-gray-200 bg-red-600 bg-opacity-80 rounded-full flex items-center justify-center z-20 hover:bg-opacity-100 cursor-pointer"
+        >
+          <Icon name="delete" />
+        </div>
+      )}
       {item?.new && (
         <div className="absolute bg-red-600 border-gray-300 border-t-2 border-r-2 text-gray-200 px-2 py-1 rounded-bl rounded-tr-xl top-0 right-0">
           {item?.new}

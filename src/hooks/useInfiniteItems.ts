@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import filter from 'lodash/filter';
 import flatMap from 'lodash/flatMap';
 import uniqBy from 'lodash/uniqBy';
 
@@ -21,10 +20,13 @@ function useInfiniteItems<T, K extends string>(
   const { data, isLoading, isFetchingNextPage, fetchNextPage } = queryResult;
   const [canFetchNextPage, setCanFetchNextPage] = useState(false);
 
-  const items = useMemo(
-    () => uniqBy(filter(flatMap<PageWithItems<T, K>, T>(data?.pages as unknown as PageWithItems<T, K>[], (page) => page[key])), uniqKey),
-    [data?.pages, key, uniqKey],
-  );
+  const items = useMemo(() => {
+    const pages = (data?.pages || []) as unknown as PageWithItems<T, K>[];
+    return uniqBy(
+      flatMap<PageWithItems<T, K>, T>(pages, (page) => page?.[key] || []),
+      uniqKey,
+    );
+  }, [data?.pages, key, uniqKey]);
   const processedItems = useMemo(() => (processItems ? processItems(items) : items), [items, processItems]);
 
   const handleLoadMore = useCallback(() => {

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 import map from 'lodash/map';
 
@@ -6,6 +7,7 @@ import { HistoryItem } from 'api';
 import Scrollable from 'components/scrollable';
 import Title from 'components/title';
 import VideoItem from 'components/videoItem';
+import useApiMutation from 'hooks/useApiMutation';
 
 type Props = {
   title?: React.ReactNode;
@@ -18,6 +20,17 @@ type Props = {
 };
 
 const HistoryList: React.FC<Props> = ({ title, items, loading, onScrollToEnd, scrollable = true, className, titleClassName }) => {
+  const queryClient = useQueryClient();
+  const { historyClearItemAsync } = useApiMutation('historyClearItem');
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      await historyClearItemAsync([id]);
+      queryClient.invalidateQueries('history');
+    },
+    [historyClearItemAsync, queryClient],
+  );
+
   const content = (
     <div>
       <Title className={titleClassName}>{title}</Title>
@@ -27,6 +40,7 @@ const HistoryList: React.FC<Props> = ({ title, items, loading, onScrollToEnd, sc
             key={last_seen}
             item={item}
             playOnClick
+            onDelete={() => handleDelete(item.id)}
             {...(media.snumber > 0 ? { episodeId: `${media.number}`, seasonId: `${media.snumber}` } : {})}
           />
         ))}

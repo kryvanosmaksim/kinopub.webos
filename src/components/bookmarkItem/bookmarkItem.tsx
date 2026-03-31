@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import cx from 'classnames';
 
 import { Bookmark } from 'api';
+import Icon from 'components/icon';
 import ImageItem from 'components/imageItem';
 import useApi from 'hooks/useApi';
 import { PATHS, generatePath } from 'routes';
@@ -10,10 +11,12 @@ import { PATHS, generatePath } from 'routes';
 type Props = {
   bookmark?: Bookmark;
   className?: string;
+  onDelete?: () => void;
 };
 
-const BookmarkItem: React.FC<Props> = ({ bookmark, className }) => {
+const BookmarkItem: React.FC<Props> = ({ bookmark, className, onDelete }) => {
   const history = useHistory();
+  const [isFocused, setIsFocused] = useState(false);
   const { data } = useApi('bookmarkItems', [bookmark?.id!], { enabled: !!bookmark?.id });
 
   const posters = useMemo(
@@ -43,13 +46,31 @@ const BookmarkItem: React.FC<Props> = ({ bookmark, className }) => {
     }
   }, [bookmark, history]);
 
+  const handleOnDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onDelete?.();
+    },
+    [onDelete],
+  );
+
   return (
     <ImageItem
       onClick={handleOnClick}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
       source={posters.length === 0 ? source : undefined}
       caption={bookmark?.title}
       className={cx('h-72', className)}
     >
+      {isFocused && onDelete && (
+        <div
+          onClick={handleOnDelete}
+          className="absolute top-2 right-2 h-8 w-8 text-gray-200 bg-red-600 bg-opacity-80 rounded-full flex items-center justify-center z-20 hover:bg-opacity-100 cursor-pointer"
+        >
+          <Icon name="delete" />
+        </div>
+      )}
       {posters.length > 0 && (
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] rounded-xl overflow-hidden bg-gray-800 z-10 border-2 border-gray-300">
           {posters.map((poster, idx) => (
