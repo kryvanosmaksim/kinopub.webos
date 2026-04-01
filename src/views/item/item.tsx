@@ -41,6 +41,8 @@ const SimilarItems: React.FC<{ itemId: string; className?: string }> = ({ itemId
   return null;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const ItemView: React.FC = () => {
   const queryClient = useQueryClient();
   const history = useHistory();
@@ -160,17 +162,66 @@ const ItemView: React.FC = () => {
   }, [refetch, refetchWatching]);
   const handleSeasonToggle = useCallback(
     async (season?: Season | null) => {
-      await watchingToggleAsync([itemId!, undefined, season?.number]);
+      if (!season) return;
+      const status = season.watched === WatchingStatus.Watched ? Bool.False : Bool.True;
+      const targetStatus = status === Bool.True ? WatchingStatus.Watched : WatchingStatus.NoWatched;
+
+      // Optimistic Update: Instantly mark as watched/unwatched in the local cache
+      queryClient.setQueryData(['watchingItem', [itemId!]], (old: any) => {
+        if (!old?.item?.seasons) return old;
+        const newSeasons = old.item.seasons.map((s: any) => {
+          if (s.number === season.number) {
+            return {
+              ...s,
+              status: targetStatus,
+              episodes: s.episodes?.map((e: any) => ({ ...e, status: targetStatus })),
+            };
+          }
+          return s;
+        });
+        return { ...old, item: { ...old.item, seasons: newSeasons } };
+      });
+
+      if (status === Bool.True) {
+        // Progressively mark each episode as watched to ensure they all appear in History.
+        for (const episode of season.episodes) {
+          try {
+            await watchingToggleAsync([itemId!, episode.number, season.number, status]);
+            await sleep(500); // Increased delay to ensure Kinopub API correctly processes history timeline insertion
+          } catch (e) {
+            console.error(`Failed to toggle episode ${episode.number}`, e);
+          }
+        }
+      } else {
+        await watchingToggleAsync([itemId!, undefined, season.number, status]);
+      }
       refetchAll();
     },
-    [itemId, refetchAll, watchingToggleAsync],
+    [itemId, refetchAll, watchingToggleAsync, queryClient],
   );
   const handleEpisodeToggle = useCallback(
     async (episode: Video, season?: Season | null) => {
-      await watchingToggleAsync([itemId!, episode.number, season?.number]);
+      if (!season) return;
+      const status = episode.watched === WatchingStatus.Watched ? Bool.False : Bool.True;
+      const targetStatus = status === Bool.True ? WatchingStatus.Watched : WatchingStatus.NoWatched;
+
+      // Optimistic Update: Instantly update individual episode status
+      queryClient.setQueryData(['watchingItem', [itemId!]], (old: any) => {
+        if (!old?.item?.seasons) return old;
+        const newSeasons = old.item.seasons.map((s: any) => {
+          if (s.number === season.number) {
+            const newEpisodes = s.episodes?.map((e: any) => (e.number === episode.number ? { ...e, status: targetStatus } : e));
+            return { ...s, episodes: newEpisodes };
+          }
+          return s;
+        });
+        return { ...old, item: { ...old.item, seasons: newSeasons } };
+      });
+
+      await watchingToggleAsync([itemId!, episode.number, season.number, status]);
       refetchAll();
     },
-    [itemId, refetchAll, watchingToggleAsync],
+    [itemId, refetchAll, watchingToggleAsync, queryClient],
   );
 
   const handleOnVisibilityClick = useCallback(async () => {
@@ -257,6 +308,8 @@ const ItemView: React.FC = () => {
                   seasons={itemWithWatching.seasons}
                   visible={episodePickerVisible}
                   onClose={handleEpisodePickerClose}
+                  onSeasonToggle={handleSeasonToggle}
+                  onEpisodeToggle={handleEpisodeToggle}
                 />
               )}
 

@@ -17,10 +17,31 @@ function useApiInfinite<T extends Method>(
       // @ts-expect-error
       return client[method](...params, pageParam) as Methods[T];
     },
+    // @ts-expect-error
     {
-      // @ts-expect-error
-      getNextPageParam: (lastPage: PaginationResponse) => {
-        return lastPage?.pagination?.current + 1 || 1;
+      ...options,
+      getNextPageParam: (lastPage: any) => {
+        if (lastPage.items && !Array.isArray(lastPage.items) && !lastPage.pagination) {
+          let maxCurrent = 0;
+          let maxTotal = 0;
+          Object.values(lastPage.items).forEach((section: any) => {
+            if (section.pagination) {
+              if (section.pagination.current > maxCurrent) maxCurrent = section.pagination.current;
+              if (section.pagination.total > maxTotal) maxTotal = section.pagination.total;
+            }
+          });
+          if (maxCurrent > 0 && maxCurrent < maxTotal) return maxCurrent + 1;
+          return undefined;
+        }
+
+        if (lastPage.pagination) {
+          if (lastPage.pagination.current < lastPage.pagination.total) {
+            return lastPage.pagination.current + 1;
+          }
+          return undefined;
+        }
+
+        return undefined;
       },
       ...options,
     },

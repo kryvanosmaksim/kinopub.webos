@@ -82,3 +82,26 @@ video {
 .transition-opacity {
   transition-property: opacity;
 }
+
+.badge-watched {
+  @apply px-3 font-bold text-white rounded tracking-wider bg-green-600 inline-flex items-center justify-center;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  font-size: 18px;
+  line-height: 1;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.watched-overlay {
+  @apply absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center pointer-events-none z-10;
+  backdrop-filter: blur(1px);
+}
+
+.text-tiny {
+  font-size: 10px !important;
+}

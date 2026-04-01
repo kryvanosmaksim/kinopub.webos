@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import React from 'react';
+import cx from 'classnames';
 
 import Button from 'components/button';
 
@@ -20,23 +21,32 @@ const Checkbox: React.FC<CheckboxProps> = ({ defaultChecked, checked, onChange, 
     },
     [onChange],
   );
-  const handleClick = useCallback(() => {
-    inputRef.current?.click();
-  }, []);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      props.onClick?.(e as any);
+      inputRef.current?.click();
+    },
+    [props.onClick],
+  );
 
   return (
-    <Button className={className} onClick={handleClick} disabled={disabled}>
+    <Button
+      className={cx('p-1 flex items-center !rounded-md h-8', children ? 'justify-start' : 'w-8 justify-center', className)}
+      onClick={handleClick}
+      disabled={disabled}
+    >
       <input
         type="checkbox"
         {...props}
         ref={inputRef}
-        className="inline-block w-4 h-4"
+        className="cursor-pointer w-6 h-6"
         defaultChecked={defaultChecked}
         checked={checked}
         onChange={handleChange}
         disabled={disabled}
       />
-      <span className="inline-block ml-2 whitespace-nowrap">{children}</span>
+      {children && <span className="inline-block ml-2 whitespace-nowrap">{children}</span>}
     </Button>
   );
 };

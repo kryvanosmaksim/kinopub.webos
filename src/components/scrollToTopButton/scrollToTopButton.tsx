@@ -25,7 +25,7 @@ const ScrollToTopButton: React.FC<Props> = ({ visible, onClick }) => {
         iconOnly
         onClick={handleClick}
         spotlightDisabled
-        className="bg-black bg-opacity-70 rounded-full p-4 text-white shadow-xl"
+        className="bg-black bg-opacity-70 rounded-full p-4 text-white shadow-xl hover:text-red-500 hover:bg-gray-800 transition-colors"
       />
     </div>
   );

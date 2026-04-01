@@ -1,33 +1,55 @@
 import { useCallback } from 'react';
+import cx from 'classnames';
 import orderBy from 'lodash/orderBy';
 
 import { Item } from 'api';
+import Button from 'components/button';
 import Input from 'components/input';
 import Seo from 'components/seo';
 import Text from 'components/text';
 import ItemsListInfinite from 'containers/itemsListInfinite';
 import useApiInfinite from 'hooks/useApiInfinite';
 import useRouteState from 'hooks/useRouteState';
-import useSearchParams from 'hooks/useSearchParams';
 
-function orderItems(items: Item[]) {
-  return orderBy(items, 'year', 'desc');
+function processItems(items: any) {
+  if (items && !Array.isArray(items)) {
+    const allItems = Object.values(items).flatMap((section: any) => section.items || []);
+    const uniqueItems = Array.from(new Map(allItems.map((item: Item) => [item.id, item])).values());
+    return orderBy(uniqueItems, 'year', 'desc');
+  }
+  return orderBy(items || [], 'year', 'desc');
 }
 
+const MODES = [
+  { value: '', label: 'Название' },
+  { value: 'actor', label: 'Актёр' },
+  { value: 'director', label: 'Режиссёр' },
+];
+
 const SearchView: React.FC = () => {
-  const searchParams = useSearchParams();
   const [query, setQuery] = useRouteState('q', '');
-  const queryResult = useApiInfinite('itemsSearch', [
-    {
-      ...searchParams,
-      q: query,
-    },
-  ]);
+  const [mode, setMode] = useRouteState('mode', '');
+
+  const isActor = mode === 'actor';
+  const isDirector = mode === 'director';
+
+  const apiMethod = isActor || isDirector ? 'items' : 'itemsSearch';
+  const apiParams = isActor ? { actor: query } : isDirector ? { director: query } : { q: query };
+
+  const queryResult = useApiInfinite(apiMethod, [apiParams]);
+
   const handleQueryChange = useCallback(
     (value) => {
       setQuery(value);
     },
     [setQuery],
+  );
+
+  const handleModeChange = useCallback(
+    (value: string) => {
+      setMode(value, true);
+    },
+    [setMode],
   );
 
   return (
@@ -41,11 +63,25 @@ const SearchView: React.FC = () => {
               <Text>Поиск</Text>
             </div>
             <Input autoFocus placeholder="Название фильма или сериала..." value={query} onChange={handleQueryChange} />
+            <div className="flex mt-2 gap-2">
+              {MODES.map(({ value, label }) => (
+                <Button
+                  key={value}
+                  className={cx('border', {
+                    'border-red-600 text-red-500': mode === value,
+                    'border-gray-600 text-gray-400': mode !== value,
+                  })}
+                  onClick={() => handleModeChange(value)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
           </div>
         }
-        showResult={query.length > 3}
-        queryResult={queryResult}
-        processItems={orderItems}
+        showResult={query.length > 2}
+        queryResult={queryResult as any}
+        processItems={processItems}
       />
     </>
   );

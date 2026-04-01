@@ -4,6 +4,8 @@ import Spotlight from '@enact/spotlight';
 import cx from 'classnames';
 
 import { Item, Season, Video, WatchingStatus } from 'api';
+import Checkbox from 'components/checkbox';
+import Icon from 'components/icon';
 import SpotlightContainer from 'components/spotlightContainer';
 import Spottable from 'components/spottable';
 import Text from 'components/text';
@@ -20,11 +22,23 @@ type Props = {
   currentSeasonNumber?: number;
   onClose: () => void;
   onEpisodeSelect?: (episode: Video, season: Season) => void;
+  onSeasonToggle?: (season: Season) => void;
+  onEpisodeToggle?: (episode: Video, season: Season) => void;
 };
 
-const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpisodeSelect, currentSeasonNumber }) => {
+const EpisodePicker: React.FC<Props> = ({
+  item,
+  seasons,
+  visible,
+  onClose,
+  onEpisodeSelect,
+  currentSeasonNumber,
+  onSeasonToggle,
+  onEpisodeToggle,
+}) => {
   const history = useHistory();
   const [selectedSeasonIdx, setSelectedSeasonIdx] = useState(0);
+  const [focusedEpisode, setFocusedEpisode] = useState<Video | null>(null);
   const containerId = useMemo(() => Spotlight.add({}), []);
   const seasonSpotlightIds = useMemo(() => seasons.map((_, idx) => `${containerId}-season-${idx}`), [containerId, seasons]);
 
@@ -45,6 +59,14 @@ const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpi
   const handleSeasonFocus = useCallback(
     (idx: number) => () => {
       setSelectedSeasonIdx(idx);
+      setFocusedEpisode(null);
+    },
+    [],
+  );
+
+  const handleEpisodeFocus = useCallback(
+    (episode: Video) => () => {
+      setFocusedEpisode(episode);
     },
     [],
   );
@@ -93,7 +115,23 @@ const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpi
     });
   }, []);
 
+  const handleYellowButton = useCallback(() => {
+    if (visible && onSeasonToggle && selectedSeason) {
+      onSeasonToggle(selectedSeason);
+      return false;
+    }
+  }, [visible, onSeasonToggle, selectedSeason]);
+
+  const handleBlueButton = useCallback(() => {
+    if (visible && onEpisodeToggle && selectedSeason && focusedEpisode) {
+      onEpisodeToggle(focusedEpisode, selectedSeason);
+      return false;
+    }
+  }, [visible, onEpisodeToggle, selectedSeason, focusedEpisode]);
+
   useButtonEffect('Back', handleCloseIfVisible);
+  useButtonEffect('Yellow', handleYellowButton);
+  useButtonEffect('Blue', handleBlueButton);
   useButtonEffect('ArrowUp', scrollActiveElementIntoView);
   useButtonEffect('ArrowDown', scrollActiveElementIntoView);
   const hashTrigger = useHashTrigger('episodes', handleCloseIfVisible);
@@ -144,8 +182,15 @@ const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpi
                 onFocus={handleSeasonFocus(idx)}
               >
                 <div className="flex items-center justify-between">
-                  <Text>{season.title || `Сезон ${season.number}`}</Text>
-                  {season.watched === WatchingStatus.Watched && <Text className="text-green-500 ml-2 text-xs">✓</Text>}
+                  <Text className="truncate pr-2">{season.title || `Сезон ${season.number}`}</Text>
+                  <Checkbox
+                    checked={season.watched === WatchingStatus.Watched}
+                    tabIndex={-1}
+                    onClick={(e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      onSeasonToggle?.(season);
+                    }}
+                  />
                 </div>
               </Spottable>
             ))}
@@ -162,15 +207,18 @@ const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpi
                   episode.watched === WatchingStatus.Watched ? 'text-gray-500' : 'text-gray-200',
                 )}
                 onClick={handleEpisodeClick(episode)}
+                onFocus={handleEpisodeFocus(episode)}
               >
                 <div className="flex items-center">
                   {episode.thumbnail && (
-                    <img
-                      loading="lazy"
-                      src={episode.thumbnail}
-                      alt={episode.title}
-                      className="w-24 h-14 object-cover rounded flex-shrink-0 mr-3"
-                    />
+                    <div className="relative w-24 h-14 flex-shrink-0 mr-3">
+                      <img loading="lazy" src={episode.thumbnail} alt={episode.title} className="w-full h-full object-cover rounded" />
+                      {episode.watched === WatchingStatus.Watched && (
+                        <div className="watched-overlay rounded">
+                          <Text className="text-white text-tiny font-bold uppercase">Просмотрено</Text>
+                        </div>
+                      )}
+                    </div>
                   )}
                   <div className="flex items-center justify-between flex-1 min-w-0">
                     <div className="flex items-center flex-1 min-w-0">
@@ -179,8 +227,15 @@ const EpisodePicker: React.FC<Props> = ({ item, seasons, visible, onClose, onEpi
                     </div>
                     <div className="flex items-center flex-shrink-0 ml-4">
                       {episode.duration > 0 && <Text className="text-gray-400 text-xs mr-3">{secondsToDuration(episode.duration)}</Text>}
-                      {episode.watched === WatchingStatus.Watched && <Text className="text-green-500 text-xs">✓</Text>}
-                      {episode.watching?.status === WatchingStatus.Watching && <Text className="text-yellow-500 text-xs">▶</Text>}
+                      <Checkbox
+                        checked={episode.watched === WatchingStatus.Watched}
+                        tabIndex={-1}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          onEpisodeToggle?.(episode, selectedSeason);
+                        }}
+                      />
+                      {episode.watching?.status === WatchingStatus.Watching && <Text className="text-yellow-500 text-xs ml-2">▶</Text>}
                     </div>
                   </div>
                 </div>

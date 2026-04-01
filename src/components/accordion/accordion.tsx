@@ -7,15 +7,16 @@ import useChangebleState from 'hooks/useChangebleState';
 import useThrottledCallback from 'hooks/useThrottledCallback';
 
 type Props = {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   className?: string;
   open?: boolean;
   disabled?: boolean;
   onToggle?: (open: boolean) => void;
+  after?: React.ReactNode;
 };
 
-const Accordion: React.FC<Props> = ({ open, onToggle, title, subtitle, className, children, disabled }) => {
+const Accordion: React.FC<Props> = ({ open, onToggle, title, subtitle, className, children, disabled, after }) => {
   const [visible, setVisible] = useChangebleState(open);
 
   const handleClick = useCallback(() => {
@@ -31,11 +32,11 @@ const Accordion: React.FC<Props> = ({ open, onToggle, title, subtitle, className
   return (
     <div className="flex flex-col w-full">
       <Button onClick={handleClickThrottled} className={className} disabled={disabled}>
-        <div className="flex flex-col">
-          <div className="flex items-center">
-            <Text>{title}</Text>
-
-            {!disabled && <Icon name={visible ? 'expand_less' : 'expand_more'} />}
+        <div className="flex flex-col w-full">
+          <div className="flex items-center w-full">
+            <div className="flex-1 text-left">{typeof title === 'string' ? <Text>{title}</Text> : title}</div>
+            {!disabled && <Icon className="mx-2" name={visible ? 'expand_less' : 'expand_more'} />}
+            {after && <div className="ml-auto pl-4 flex items-center">{after}</div>}
           </div>
           {!visible && subtitle && <Text className="mt-2">{subtitle}</Text>}
         </div>

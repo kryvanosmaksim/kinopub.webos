@@ -4,7 +4,9 @@ import map from 'lodash/map';
 
 import { Item, Season, Video, WatchingStatus } from 'api';
 import Accordion from 'components/accordion';
+import Icon from 'components/icon';
 import ImageItem from 'components/imageItem';
+import Text from 'components/text';
 import { PATHS, generatePath } from 'routes';
 
 type Props = {
@@ -50,7 +52,10 @@ const SeasonItem: React.FC<Props> = ({ item, season, onEpisodeFocus, onEpisodeBl
 
   return (
     <div className="flex flex-col">
-      <Accordion title={season.title ? `${season.number}. ${season.title}` : `Сезон ${season.number}`}>
+      <Accordion
+        title={season.title ? `${season.number}. ${season.title}` : `Сезон ${season.number}`}
+        after={season.watched === WatchingStatus.Watched && <span className="badge-watched">Просмотрено</span>}
+      >
         <div className="flex flex-wrap">
           {map(season.episodes, (episode) => (
             <ImageItem
@@ -62,8 +67,8 @@ const SeasonItem: React.FC<Props> = ({ item, season, onEpisodeFocus, onEpisodeBl
               onBlur={handleEpisodeBlur(episode)}
             >
               {episode.watched === WatchingStatus.Watched && (
-                <div className="absolute flex justify-center items-center rounded-xl bg-black bg-opacity-70 top-0 bottom-0 left-0 right-0">
-                  Просмотрено
+                <div className="watched-overlay rounded-xl">
+                  <Text className="text-white font-bold uppercase">Просмотрено</Text>
                 </div>
               )}
             </ImageItem>

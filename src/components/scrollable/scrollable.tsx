@@ -1,4 +1,5 @@
-import { createContext, useCallback, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import cx from 'classnames';
 
 import ScrollToTopButton from 'components/scrollToTopButton';
@@ -6,6 +7,8 @@ import useInViewport from 'hooks/useInViewport';
 import useUniqueId from 'hooks/useUniqueId';
 
 export const ScrollableContext = createContext<{ id?: string }>({});
+
+const scrollPositions = new Map<string, number>();
 
 type Props = {
   onScrollToEnd?: () => void;
@@ -17,12 +20,29 @@ const Scrollable: React.FC<Props> = ({ children, className, onScrollToEnd, ...pr
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const id = useUniqueId('scrollable');
+  const history = useHistory();
+  const locationKey = useRef(history.location.key || history.location.pathname).current;
   const value = useMemo(
     () => ({
       id,
     }),
     [id],
   );
+
+  useLayoutEffect(() => {
+    const saved = scrollPositions.get(locationKey);
+    if (saved && scrollRef.current) {
+      scrollRef.current.scrollTop = saved;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return history.listen(() => {
+      if (scrollRef.current) {
+        scrollPositions.set(locationKey, scrollRef.current.scrollTop);
+      }
+    });
+  }, [history, locationKey]);
 
   useInViewport(footerRef, { onEnterViewport: onScrollToEnd });
 
