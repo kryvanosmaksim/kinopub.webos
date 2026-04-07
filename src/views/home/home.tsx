@@ -128,13 +128,13 @@ const HomeView: React.FC = () => {
       <Scrollable>
         <ContinueWatching />
 
-        <PopularSerials />
-
-        <NewSerials />
-
         <PopularMovies />
 
         <NewMovies />
+
+        <PopularSerials />
+
+        <NewSerials />
 
         <NewDocuSerials />
 

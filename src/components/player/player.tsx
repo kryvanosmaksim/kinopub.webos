@@ -107,6 +107,7 @@ const Player: React.FC<PlayerProps> = ({
   const handleLoadedMetadata = useCallback(() => {
     setIsLoaded(true);
   }, []);
+
   const handleSettingsOpen = useCallback(() => {
     if (playerRef.current) {
       setIsSettingsOpen(true);
@@ -169,7 +170,6 @@ const Player: React.FC<PlayerProps> = ({
   useButtonEffect('Play', handleSettingsClose);
   useButtonEffect('Pause', handlePauseButton);
   useButtonEffect('Enter', handlePlayPause);
-  useButtonEffect('ArrowUp', handleSettingsOpen);
 
   return (
     <>

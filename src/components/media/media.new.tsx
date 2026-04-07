@@ -83,6 +83,7 @@ function useVideoPlayer({
   const startTimeRef = useRef(0);
   const isSettingsOpenRef = useRef(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hlsReloadTrigger, setHlsReloadTrigger] = useState(0);
   const [isHLSJSActive] = useStorageState<boolean>('is_hls.js_active');
   const [currentAudioTrack, setCurrentAudioTrack] = useState<AudioTrack>(
     () => (audioTracks?.find((audioTrack) => audioTrack.default) || audioTracks?.[0])!,
@@ -96,7 +97,7 @@ function useVideoPlayer({
     () => subtitleTracks?.find((subtitleTrack) => subtitleTrack.default) || null,
   );
 
-  const getAudioTracks = useCallback(() => (streamingType === 'hls2' ? [] : audioTracks), [audioTracks, streamingType]);
+  const getAudioTracks = useCallback(() => audioTracks, [audioTracks]);
   const getAudioTrack = useCallback(() => currentAudioTrack?.name, [currentAudioTrack]);
   const setAudioTrack = useCallback(
     (audioTrackName: string) => {
@@ -150,6 +151,9 @@ function useVideoPlayer({
     () => audioTracks?.findIndex((audioTrack) => audioTrack.name === currentAudioTrack.name) ?? 0,
     [audioTracks, currentAudioTrack],
   );
+  const currentAudioTrackIndexRef = useRef(0);
+  currentAudioTrackIndexRef.current = currentAudioTrackIndex;
+  const prevAudioTrackIndexRef = useRef(currentAudioTrackIndex);
   const currentSrc = useMemo(
     () =>
       streamingType === 'hls'
@@ -196,6 +200,13 @@ function useVideoPlayer({
               hls.currentLevel = levelIndex;
             }
           }
+          // HLS2 has no EXT-X-MEDIA audio renditions; audio track is encoded in segment URLs (v1a1, v1a2, etc.)
+          if (streamingType === 'hls2' && currentAudioTrackIndexRef.current > 0) {
+            const audioIdx = currentAudioTrackIndexRef.current + 1;
+            hls.levels.forEach((level) => {
+              level.url = level.url.map((u) => u.replace(/v1a\d+/, `v1a${audioIdx}`));
+            });
+          }
         });
       } else {
         videoRef.current.src = currentSrc;
@@ -219,15 +230,25 @@ function useVideoPlayer({
         hlsRef.current = null;
       }
     };
-  }, [currentSrc, isHLSJSActive, handleMediaLoaded]);
+  }, [currentSrc, isHLSJSActive, handleMediaLoaded, hlsReloadTrigger]);
 
   useEffect(() => {
     if (isLoaded) {
       if (hlsRef.current) {
-        const hlsAudioTrack = hlsRef.current.audioTracks?.[currentAudioTrackIndex];
+        if (streamingType === 'hls2') {
+          // HLS2 has no EXT-X-MEDIA audio renditions; audio is encoded in level URLs (v1a1, v1a2, etc.)
+          // Reload HLS.js so MANIFEST_PARSED substitutes the correct audio index into all level URLs.
+          // Guard with prevAudioTrackIndexRef to avoid re-triggering after the reload itself sets isLoaded=true.
+          if (prevAudioTrackIndexRef.current !== currentAudioTrackIndex) {
+            prevAudioTrackIndexRef.current = currentAudioTrackIndex;
+            setHlsReloadTrigger((prev) => prev + 1);
+          }
+        } else {
+          const hlsAudioTrack = hlsRef.current.audioTracks?.[currentAudioTrackIndex];
 
-        if (hlsAudioTrack) {
-          hlsRef.current.audioTrack = hlsAudioTrack.id;
+          if (hlsAudioTrack) {
+            hlsRef.current.audioTrack = hlsAudioTrack.id;
+          }
         }
       } else if (videoRef.current) {
         // Do not change audio if we don't have it (mostly on HLS)
@@ -242,7 +263,7 @@ function useVideoPlayer({
         }
       }
     }
-  }, [isLoaded, currentAudioTrackIndex]);
+  }, [isLoaded, currentAudioTrackIndex, streamingType]);
 
   useEffect(() => {
     if (isLoaded) {

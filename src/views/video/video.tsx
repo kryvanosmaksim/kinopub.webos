@@ -15,8 +15,9 @@ import useStorageState from 'hooks/useStorageState';
 import { getItemDescription, getItemTitle, getItemVideoToPlay } from 'utils/item';
 import { mapAudios, mapSources, mapSubtitles } from 'utils/video';
 
-const useNextVideo = (item: ItemDetails, video: Video, season?: Season) =>
+const useNextVideo = (item: ItemDetails | undefined, video: Video | undefined, season?: Season) =>
   useMemo(() => {
+    if (!item || !video) return undefined;
     const nextVideo = (item.videos || season?.episodes)?.find(({ number }) => number === video.number + 1);
 
     if (nextVideo) {
@@ -29,8 +30,9 @@ const useNextVideo = (item: ItemDetails, video: Video, season?: Season) =>
     }
   }, [item, season, video]);
 
-const usePreviousVideo = (item: ItemDetails, video: Video, season?: Season) =>
+const usePreviousVideo = (item: ItemDetails | undefined, video: Video | undefined, season?: Season) =>
   useMemo(() => {
+    if (!item || !video) return undefined;
     const previousVideo = (item.videos || season?.episodes)?.find(({ number }) => number === video.number - 1);
 
     if (previousVideo) {
@@ -62,9 +64,9 @@ const VideoView: React.FC = () => {
   const [streamingType] = useStorageState<Streaming>('streaming_type');
   const [isAC3ByDefaultActive] = useStorageState<boolean>('is_ac3_by_default_active');
   const [isForcedByDefaultActive] = useStorageState<boolean>('is_forced_by_default_active');
-  const [savedAudioName, setSavedAudioName] = useStorageState<string>(`item_${item.id}_saved_audio_name`);
-  const [savedSourceName, setSavedSourceName] = useStorageState<string>(`item_${item.id}_saved_source_name`);
-  const [savedSubtitleName, setSavedSubtitleName] = useStorageState<string>(`item_${item.id}_saved_subtitle_name`);
+  const [savedAudioName, setSavedAudioName] = useStorageState<string>(`item_${item?.id}_saved_audio_name`);
+  const [savedSourceName, setSavedSourceName] = useStorageState<string>(`item_${item?.id}_saved_source_name`);
+  const [savedSubtitleName, setSavedSubtitleName] = useStorageState<string>(`item_${item?.id}_saved_subtitle_name`);
   const [defaultQuality] = useStorageState<string>('default_quality');
   const [defaultAudioLang] = useStorageState<string>('default_audio_lang');
   const [defaultSubtitleLang] = useStorageState<string>('default_subtitle_lang');
@@ -73,7 +75,7 @@ const VideoView: React.FC = () => {
   const [currentSeason, setCurrentSeason] = useState(season);
   const [previousVideo, nextVideo] = usePrevNextVideos(item, currentVideo, currentSeason);
 
-  const currentVideoLinks = useApi('itemMediaLinks', [currentVideo.id]);
+  const currentVideoLinks = useApi('itemMediaLinks', [currentVideo?.id]);
 
   const saveCurrentTime = useCallback(
     async ({ number }: Video, currentTime: number) => {
@@ -122,10 +124,10 @@ const VideoView: React.FC = () => {
   const updateVideoAndSeason = useCallback(
     (video: Video) => {
       setCurrentVideo(video);
-      const newSeason = item.seasons?.find((s) => s.number === video.snumber);
+      const newSeason = item?.seasons?.find((s) => s.number === video.snumber);
       if (newSeason) setCurrentSeason(newSeason);
     },
-    [item.seasons],
+    [item?.seasons],
   );
 
   const handleOnEnded = useCallback(
@@ -200,6 +202,8 @@ const VideoView: React.FC = () => {
     },
     [saveCurrentTime, currentVideo],
   );
+
+  if (!item) return null;
 
   return (
     <>

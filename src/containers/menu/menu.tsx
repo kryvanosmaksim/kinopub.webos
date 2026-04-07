@@ -13,7 +13,7 @@ type MenuItem = {
   href: string;
 };
 
-const menuItems: (MenuItem | null)[][] = [
+const menuItems: MenuItem[][] = [
   [
     {
       name: 'Главная',
@@ -99,24 +99,12 @@ const menuItems: (MenuItem | null)[][] = [
     },
   ].filter(Boolean),
   [
-    process.env.REACT_APP_HIDE_DONATE_MENU === 'true'
-      ? null
-      : {
-          name: 'Донат',
-          icon: 'favorite',
-          href: PATHS.Donate,
-        },
-    {
-      name: 'Спидтест',
-      icon: 'speed',
-      href: PATHS.Speed,
-    },
     {
       name: 'Настройки',
       icon: 'settings',
       href: PATHS.Settings,
     },
-  ].filter(Boolean),
+  ],
 ];
 
 type Props = {
@@ -140,28 +128,28 @@ const Menu: React.FC<Props> = ({ className, ...props }) => {
     }
   }, []);
 
+  const renderList = (list: MenuItem[]) =>
+    map(list, (item: MenuItem) => (
+      <li key={item.href}>
+        <Link href={item.href} icon={item.icon} iconOnly={collapsed} active={location.pathname.startsWith(item.href)} className="text-2xl">
+          {item.name}
+        </Link>
+      </li>
+    ));
+
   return (
     <nav
-      className={cx(
-        'h-screen flex flex-col justify-between overflow-y-auto flex-shrink-0 transition-all duration-300',
-        collapsed ? 'w-14' : 'w-52',
-        className,
-      )}
+      className={cx('h-screen flex flex-col flex-shrink-0 transition-all duration-300', collapsed ? 'w-14' : 'w-52', className)}
       onFocus={handleFocus}
       onBlur={handleBlur}
       {...props}
     >
-      {map(menuItems, (list, idx) => (
-        <ul key={idx}>
-          {map(list, (item: MenuItem) => (
-            <li key={item.href}>
-              <Link href={item.href} icon={item.icon} iconOnly={collapsed} active={location.pathname.startsWith(item.href)}>
-                {item.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ))}
+      <ul>{renderList(menuItems[0])}</ul>
+      <hr className="border-gray-700 mx-2 my-1" />
+      <ul>{renderList(menuItems[1])}</ul>
+      <div className="flex-1" />
+      <hr className="border-gray-700 mx-2 my-1" />
+      <ul>{renderList(menuItems[2])}</ul>
     </nav>
   );
 };

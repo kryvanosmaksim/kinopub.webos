@@ -21,9 +21,15 @@ function useInfiniteItems<T, K extends string>(
   const [canFetchNextPage, setCanFetchNextPage] = useState(false);
 
   const items = useMemo(() => {
-    const pages = (data?.pages || []) as unknown as PageWithItems<T, K>[];
+    const pages = (data?.pages || []) as any[];
     return uniqBy(
-      flatMap<PageWithItems<T, K>, T>(pages, (page) => page?.[key] || []),
+      flatMap(pages, (page) => {
+        const pageItems = page?.[key];
+        if (!pageItems) return [];
+        if (Array.isArray(pageItems)) return pageItems as T[];
+        // Section-based response (e.g. actor/director search): {sectionName: {items: [...]}}
+        return Object.values(pageItems as Record<string, any>).flatMap((section) => (section?.items || []) as T[]);
+      }),
       uniqKey,
     );
   }, [data?.pages, key, uniqKey]);

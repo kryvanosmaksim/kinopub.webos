@@ -105,3 +105,57 @@ video {
 .text-tiny {
   font-size: 10px !important;
 }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-8 {
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-9 {
+  display: -webkit-box;
+  -webkit-line-clamp: 9;
+  line-clamp: 9;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

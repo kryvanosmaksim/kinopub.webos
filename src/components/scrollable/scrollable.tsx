@@ -21,7 +21,7 @@ const Scrollable: React.FC<Props> = ({ children, className, onScrollToEnd, ...pr
   const [showScrollTop, setShowScrollTop] = useState(false);
   const id = useUniqueId('scrollable');
   const history = useHistory();
-  const locationKey = useRef(history.location.key || history.location.pathname).current;
+  const locationKey = useRef(history.location.pathname).current;
   const value = useMemo(
     () => ({
       id,

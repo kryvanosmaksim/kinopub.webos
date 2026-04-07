@@ -243,16 +243,15 @@ const SettingsView: React.FC = () => {
           )}
         </div>
 
-        <div className="flex justify-between absolute bottom-0 left-0 right-0 py-2">
+        <div className="flex justify-between absolute bottom-0 left-0 right-0 py-2 border-t border-gray-800">
           <div>
-            <Text>Пользователь</Text>
+            <Text className="text-gray-500 text-sm">Пользователь</Text>
             <div className="flex items-center">
               {data?.user && (
                 <Text className="mr-4">
                   {data.user.profile.name || data.user.username} ({Math.floor(data.user.subscription.days)} дн.)
                 </Text>
               )}
-
               <Button icon="logout" onClick={handleLogoutClick}>
                 Выход
               </Button>
@@ -260,8 +259,8 @@ const SettingsView: React.FC = () => {
           </div>
 
           <div className="flex flex-col items-end pr-4">
-            <Text>{hardware}</Text>
-            <Text>{software}</Text>
+            <Text className="text-gray-500 text-sm">{hardware}</Text>
+            <Text className="text-gray-500 text-sm">{software}</Text>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import UIMedia, { MediaProps } from '@enact/ui/Media';
 import HLS from 'hls.js';
-import uniq from 'lodash/uniq';
 import uniqBy from 'lodash/uniqBy';
 
 import { convertToVTT } from 'utils/subtitles';
@@ -80,25 +79,45 @@ class Media extends UIMedia {
   }
 
   get audioTracks() {
-    if (this.hls) {
-      return uniq(this.hls.audioTracks.map((audioTrack) => audioTrack.name));
+    console.log(
+      '[Media] audioTracks getter — hls:',
+      !!this.hls,
+      'hls tracks:',
+      this.hls?.audioTracks?.length,
+      'props tracks:',
+      this.props.audioTracks?.length,
+      'native tracks:',
+      this.media?.audioTracks?.length,
+    );
+    if (this.hls && this.hls.audioTracks.length > 1) {
+      const seen = new Set<string>();
+      const unique = this.hls.audioTracks.filter((t) => {
+        if (seen.has(t.name)) return false;
+        seen.add(t.name);
+        return true;
+      });
+      return unique.map((t, idx) => ({
+        name: t.name,
+        lang: t.lang || '',
+        number: `${String(idx + 1).padStart(2, '0')}.`,
+      }));
     }
 
-    return this.props.audioTracks?.map((audioTrack) => audioTrack.name);
+    return this.props.audioTracks || [];
   }
 
   get audioTrack() {
-    if (this.hls) {
-      return this.hls.audioTracks.find((audioTrack) => audioTrack.id === this.hls?.audioTrack)?.name!;
+    if (this.hls && this.hls.audioTracks.length > 1) {
+      return this.hls.audioTracks.find((audioTrack) => audioTrack.id === this.hls?.audioTrack)?.name ?? '';
     }
 
     const audioTracksIndex = Array.from(this.media.audioTracks || []).findIndex((audioTrack) => audioTrack.enabled);
 
-    return this.props.audioTracks?.[audioTracksIndex]?.name!;
+    return this.props.audioTracks?.[audioTracksIndex]?.name ?? '';
   }
 
   set audioTrack(name: string) {
-    if (this.hls) {
+    if (this.hls && this.hls.audioTracks.length > 1) {
       const audioTrack = this.hls.audioTracks.find((audioTrack) => audioTrack.name === name);
 
       if (audioTrack) {
@@ -106,9 +125,9 @@ class Media extends UIMedia {
       }
     } else {
       const audioTracks = Array.from(this.media.audioTracks || []);
-      let audioTracksIndex = this.props.audioTracks?.findIndex((audioTrack) => audioTrack.name === name);
+      let audioTracksIndex = this.props.audioTracks?.findIndex((audioTrack) => audioTrack.name === name) ?? 0;
 
-      if (!audioTracksIndex || audioTracksIndex > audioTracks.length - 1) {
+      if (audioTracksIndex < 0 || audioTracksIndex > audioTracks.length - 1) {
         audioTracksIndex = 0;
       }
 
@@ -119,7 +138,7 @@ class Media extends UIMedia {
   }
 
   get sourceTracks() {
-    return uniqBy(this.props.sourceTracks, 'src').map((sourceTrack) => sourceTrack.name);
+    return uniqBy(this.props.sourceTracks, 'src');
   }
 
   get sourceTrack() {
@@ -135,11 +154,22 @@ class Media extends UIMedia {
   }
 
   get subtitleTracks() {
-    if (this.hls) {
-      return this.hls.subtitleTracks.map((subtitleTrack) => subtitleTrack.name);
+    if (this.hls && this.hls.subtitleTracks.length > 0) {
+      const seen = new Set<string>();
+      const unique = this.hls.subtitleTracks.filter((t) => {
+        if (seen.has(t.name)) return false;
+        seen.add(t.name);
+        return true;
+      });
+      return unique.map((t, idx) => ({
+        name: t.name,
+        lang: t.lang || '',
+        src: '',
+        number: `${String(idx + 1).padStart(2, '0')}.`,
+      }));
     }
 
-    return this.props.subtitleTracks?.map((subtitleTrack) => subtitleTrack.name);
+    return this.props.subtitleTracks || [];
   }
 
   get subtitleTrack() {

@@ -11,12 +11,7 @@ import ItemsListInfinite from 'containers/itemsListInfinite';
 import useApiInfinite from 'hooks/useApiInfinite';
 import useRouteState from 'hooks/useRouteState';
 
-function processItems(items: any) {
-  if (items && !Array.isArray(items)) {
-    const allItems = Object.values(items).flatMap((section: any) => section.items || []);
-    const uniqueItems = Array.from(new Map(allItems.map((item: Item) => [item.id, item])).values());
-    return orderBy(uniqueItems, 'year', 'desc');
-  }
+function processItems(items: Item[]) {
   return orderBy(items || [], 'year', 'desc');
 }
 
@@ -63,7 +58,7 @@ const SearchView: React.FC = () => {
               <Text>Поиск</Text>
             </div>
             <Input autoFocus placeholder="Название фильма или сериала..." value={query} onChange={handleQueryChange} />
-            <div className="flex mt-2 gap-2">
+            <div className="flex" style={{ marginTop: '0.5rem' }}>
               {MODES.map(({ value, label }) => (
                 <Button
                   key={value}
@@ -71,6 +66,7 @@ const SearchView: React.FC = () => {
                     'border-red-600 text-red-500': mode === value,
                     'border-gray-600 text-gray-400': mode !== value,
                   })}
+                  style={{ marginRight: '0.5rem' }}
                   onClick={() => handleModeChange(value)}
                 >
                   {label}
