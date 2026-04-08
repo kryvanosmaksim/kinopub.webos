@@ -79,6 +79,21 @@ export function getItemDescription(item?: ItemDetails, video?: Video, season?: S
   return season ? (title ? `${title} (${episode})` : episode) : title;
 }
 
+export function getItemDisplayTitle(title: string | undefined): string {
+  if (!title) return '';
+  const hasCyrillic = (s: string) => /[а-яёА-ЯЁ]/.test(s);
+  for (let i = 0; i < title.length; i++) {
+    if (title[i] === '/') {
+      const left = title.slice(0, i).trim();
+      const right = title.slice(i + 1).trim();
+      if (hasCyrillic(left) && !hasCyrillic(right) && right.length > 0) {
+        return left;
+      }
+    }
+  }
+  return title;
+}
+
 export function getItemQualityIcon(item?: ItemDetails) {
   return item?.quality ? (item.quality === 2160 ? '4k' : item.quality === 1080 || item.quality === 720 ? 'hd' : 'sd') : null;
 }

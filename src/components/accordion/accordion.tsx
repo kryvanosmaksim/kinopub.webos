@@ -35,8 +35,8 @@ const Accordion: React.FC<Props> = ({ open, onToggle, title, subtitle, className
         <div className="flex flex-col w-full">
           <div className="flex items-center w-full">
             <div className="flex-1 text-left">{typeof title === 'string' ? <Text>{title}</Text> : title}</div>
-            {!disabled && <Icon className="mx-2" name={visible ? 'expand_less' : 'expand_more'} />}
-            {after && <div className="ml-auto pl-4 flex items-center">{after}</div>}
+            {after && <div className="pr-2 flex items-center">{after}</div>}
+            {!disabled && <Icon name={visible ? 'expand_less' : 'expand_more'} />}
           </div>
           {!visible && subtitle && <Text className="mt-2">{subtitle}</Text>}
         </div>

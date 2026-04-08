@@ -72,7 +72,7 @@ const BookmarkItem: React.FC<Props> = ({ bookmark, className, onDelete }) => {
         </div>
       )}
       {posters.length > 0 && (
-        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] rounded-xl overflow-hidden bg-gray-800 z-10 border-2 border-gray-300">
+        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] rounded-xl overflow-hidden bg-gray-800 z-10">
           {posters.map((poster, idx) => (
             <img key={idx} src={poster} className="w-full h-full object-cover" />
           ))}

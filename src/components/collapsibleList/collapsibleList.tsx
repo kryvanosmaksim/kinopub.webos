@@ -32,7 +32,7 @@ const CollapsibleList: React.FC<Props> = ({ maxVisible = 4, className, children 
     <div className={className}>
       {visibleChildren}
       {needsCollapse && (
-        <Button icon={expanded ? 'expand_less' : 'expand_more'} onClick={handleToggle} className="mt-1 text-gray-400 text-sm">
+        <Button icon={expanded ? 'expand_less' : 'expand_more'} onClick={handleToggle} className="text-gray-400 text-sm">
           {expanded ? 'Свернуть' : `Показать ещё (${hiddenCount})`}
         </Button>
       )}

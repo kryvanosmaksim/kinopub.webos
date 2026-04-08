@@ -35,7 +35,7 @@ const Button: React.FC<ButtonProps> = ({ children, icon, iconOnly = !children, a
     <Spottable
       {...props}
       ref={wrapperRef}
-      className={cx('text-gray-200 whitespace-nowrap cursor-pointer rounded px-2 py-1', className)}
+      className={cx('text-gray-200 whitespace-nowrap cursor-pointer rounded-lg px-2 py-1', className)}
       role="button"
     >
       <div className="flex items-center w-full">

@@ -6,7 +6,6 @@ import CollectionsList from 'components/collectionsList';
 import Input from 'components/input';
 import Link from 'components/link';
 import Seo from 'components/seo';
-import Text from 'components/text';
 import CollectionsListInfinite from 'containers/collectionsListInfinite';
 import useApiInfinite from 'hooks/useApiInfinite';
 import useFavoriteCollections from 'hooks/useFavoriteCollections';
@@ -42,8 +41,7 @@ const CollectionsView: React.FC = () => {
 
   const tabsAndSearch = (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-3">
-        <Text>{title}</Text>
+      <div className="flex justify-end mb-3">
         <div className="flex">
           {map(COLLECTION_TYPES, (collectionTypeName, collectionTypeKey) => (
             <Link

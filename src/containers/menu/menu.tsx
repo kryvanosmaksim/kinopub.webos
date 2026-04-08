@@ -139,16 +139,21 @@ const Menu: React.FC<Props> = ({ className, ...props }) => {
 
   return (
     <nav
-      className={cx('h-screen flex flex-col flex-shrink-0 transition-all duration-300', collapsed ? 'w-14' : 'w-52', className)}
+      className={cx(
+        'h-screen flex flex-col flex-shrink-0 transition-all duration-300 border-r border-gray-800',
+        collapsed ? 'w-14' : 'w-52',
+        className,
+      )}
+      style={{ background: 'rgba(0,0,0,0.3)' }}
       onFocus={handleFocus}
       onBlur={handleBlur}
       {...props}
     >
       <ul>{renderList(menuItems[0])}</ul>
-      <hr className="border-gray-700 mx-2 my-1" />
+      <hr className="border-gray-800 mx-3 my-2" />
       <ul>{renderList(menuItems[1])}</ul>
       <div className="flex-1" />
-      <hr className="border-gray-700 mx-2 my-1" />
+      <hr className="border-gray-800 mx-3 my-2" />
       <ul>{renderList(menuItems[2])}</ul>
     </nav>
   );

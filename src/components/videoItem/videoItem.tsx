@@ -12,7 +12,7 @@ import { PATHS, generatePath } from 'routes';
 import { ReactComponent as Imdb } from './assets/imdb.svg';
 import { ReactComponent as Kinopoisk } from './assets/kinopoisk.svg';
 
-import { getItemQualityIcon } from 'utils/item';
+import { getItemDisplayTitle, getItemQualityIcon } from 'utils/item';
 import { numberToHuman } from 'utils/number';
 
 type Props = {
@@ -26,6 +26,8 @@ type Props = {
   seasonId?: string;
   playOnClick?: boolean;
   onDelete?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 };
 
 const VideoItem: React.FC<Props> = ({
@@ -39,12 +41,14 @@ const VideoItem: React.FC<Props> = ({
   seasonId,
   playOnClick,
   onDelete,
+  onFocus,
+  onBlur,
   children,
 }) => {
   const history = useHistory();
   const [isFocused, setIsFocused] = useState(false);
   const qualityIcon = getItemQualityIcon(item);
-  const title = useMemo(() => item?.title?.split('/')[0], [item?.title]);
+  const title = useMemo(() => getItemDisplayTitle(item?.title), [item?.title]);
   const views = useMemo(() => (showViews && item?.views && numberToHuman(item?.views)) || '', [showViews, item?.views]);
   const { itemMediaAsync } = useApiMutation('itemMedia');
 
@@ -91,8 +95,14 @@ const VideoItem: React.FC<Props> = ({
   return (
     <ImageItem
       onClick={handleOnClick}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      onFocus={() => {
+        setIsFocused(true);
+        onFocus?.();
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+        onBlur?.();
+      }}
       source={item?.posters.medium}
       caption={noCaption ? '' : title}
       className={cx('h-72', className)}
@@ -107,11 +117,7 @@ const VideoItem: React.FC<Props> = ({
           <Icon name="delete" />
         </div>
       )}
-      {item?.new && (
-        <div className="absolute bg-red-600 border-gray-300 border-t-2 border-r-2 text-gray-200 px-2 py-1 rounded-bl rounded-tr-xl top-0 right-0">
-          {item?.new}
-        </div>
-      )}
+      {item?.new && <div className="absolute bg-red-600 text-gray-200 px-2 py-1 rounded-bl top-0 right-0">{item?.new}</div>}
       {views && (
         <div className="absolute top-2 right-2 h-6 pr-2 text-xs text-gray-200 bg-black bg-opacity-50 rounded flex items-center">
           <Icon name="visibility" />
@@ -131,7 +137,10 @@ const VideoItem: React.FC<Props> = ({
         </div>
       )}
       {(item?.rating! > 0 || item?.imdb_rating! > 0 || item?.kinopoisk_rating! > 0) && (
-        <div className="absolute bottom-2 left-2 right-2 h-6 px-2 text-xs text-gray-200 bg-black bg-opacity-50 rounded flex justify-between items-center">
+        <div
+          className="absolute bottom-2 left-2 right-2 h-6 px-2 text-xs text-gray-200 rounded flex justify-between items-center"
+          style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.5))' }}
+        >
           <div className="flex items-center justify-start w-1/3">
             <Imdb className="h-3 w-3 mr-1" />
             <span>{(item?.imdb_rating || 0).toFixed(1)}</span>

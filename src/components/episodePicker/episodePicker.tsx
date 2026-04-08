@@ -176,7 +176,7 @@ const EpisodePicker: React.FC<Props> = ({
                 key={season.id}
                 spotlightId={seasonSpotlightIds[idx]}
                 className={cx(
-                  'px-3 py-2 rounded cursor-pointer whitespace-nowrap text-sm',
+                  'px-3 py-2 rounded-lg cursor-pointer whitespace-nowrap text-sm',
                   idx === selectedSeasonIdx ? 'bg-white bg-opacity-20 text-white' : 'text-gray-400',
                 )}
                 onFocus={handleSeasonFocus(idx)}
@@ -203,7 +203,7 @@ const EpisodePicker: React.FC<Props> = ({
               <Spottable
                 key={episode.id}
                 className={cx(
-                  'px-3 py-1 rounded cursor-pointer text-sm',
+                  'px-3 py-1 rounded-lg cursor-pointer text-sm',
                   episode.watched === WatchingStatus.Watched ? 'text-gray-500' : 'text-gray-200',
                 )}
                 onClick={handleEpisodeClick(episode)}

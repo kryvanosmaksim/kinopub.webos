@@ -24,7 +24,7 @@ import useStreamingTypeEffect from 'hooks/useStreamingTypeEffect';
 import { PATHS, RouteParams, generatePath } from 'routes';
 
 import { secondsToDuration } from 'utils/date';
-import { getItemTitle, getItemVideoToPlay } from 'utils/item';
+import { getItemDisplayTitle, getItemTitle, getItemVideoToPlay } from 'utils/item';
 import { mapAudios, mapSubtitles } from 'utils/video';
 
 const SimilarItems: React.FC<{ itemId: string; className?: string }> = ({ itemId, className }) => {
@@ -53,7 +53,7 @@ const ItemView: React.FC = () => {
   const [deletePopupVisible, setDeletePopupVisible] = useState(false);
   const [descriptionPopupVisible, setDescriptionPopupVisible] = useState(false);
   const [descriptionClamped, setDescriptionClamped] = useState(false);
-  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const descriptionRef = useRef<HTMLDivElement>(null);
   const { data, refetch } = useApi('itemMedia', [itemId!], { staleTime: 0 });
   const { data: watchingData, refetch: refetchWatching } = useApi('watchingItem', [itemId!], { staleTime: 0 });
 
@@ -106,6 +106,19 @@ const ItemView: React.FC = () => {
 
     return item;
   }, [data?.item, watchingData?.item]);
+
+  const titleParts = useMemo(() => {
+    const t = data?.item?.title || '';
+    const main = getItemDisplayTitle(t);
+    const original =
+      main !== t
+        ? t
+            .slice(main.length)
+            .replace(/^\s*\/\s*/, '')
+            .trim() || null
+        : null;
+    return { main, original };
+  }, [data?.item?.title]);
 
   const trailer = useMemo(() => data?.item.trailer, [data?.item]);
   const [videoToPlay, season] = useMemo(() => getItemVideoToPlay(itemWithWatching), [itemWithWatching]);
@@ -321,11 +334,11 @@ const ItemView: React.FC = () => {
           {/* Cinematic gradients */}
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.95) 35%, rgba(0,0,0,0.55) 65%, transparent 100%)' }}
+            style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.35) 100%)' }}
           />
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 35%, transparent 65%)' }}
+            style={{ background: 'linear-gradient(to top, rgba(13,15,20,1) 0%, rgba(13,15,20,0.2) 35%, transparent 65%)' }}
           />
 
           {data?.item && (
@@ -335,7 +348,7 @@ const ItemView: React.FC = () => {
             >
               {/* Title — full width above poster+info */}
               <h1 className="font-bold text-white leading-tight line-clamp-2" style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>
-                {data.item.title.split('/')[0].trim()}
+                {titleParts.main}
               </h1>
 
               {/* Poster (left) + info (right) */}
@@ -346,11 +359,11 @@ const ItemView: React.FC = () => {
                 </div>
 
                 {/* Info column — same height as poster so "Читать далее" aligns at bottom */}
-                <div className="flex flex-col min-w-0 flex-1" style={{ height: '24rem' }}>
+                <div className="flex flex-col min-w-0 flex-1" style={{ height: '24rem', overflow: 'hidden' }}>
                   {/* Original title */}
-                  {data.item.title.includes('/') && (
+                  {titleParts.original && (
                     <p className="text-gray-400 italic line-clamp-2" style={{ marginBottom: '0.5rem' }}>
-                      {data.item.title.split('/').slice(1).join('/').trim()}
+                      {titleParts.original}
                     </p>
                   )}
 
@@ -403,10 +416,18 @@ const ItemView: React.FC = () => {
 
                   {/* Description — fills remaining space, "Читать далее" only shown when clamped */}
                   {data.item.plot && (
-                    <div className="flex flex-col flex-1 justify-between">
-                      <p ref={descriptionRef} className="text-gray-300 leading-relaxed line-clamp-9" style={{ fontSize: '1.05rem' }}>
-                        {data.item.plot}
-                      </p>
+                    <div className="flex flex-col flex-1 min-h-0">
+                      <div ref={descriptionRef} className="relative flex-1 min-h-0 overflow-hidden">
+                        <p className="text-gray-300 leading-relaxed" style={{ fontSize: '1.05rem' }}>
+                          {data.item.plot}
+                        </p>
+                        {descriptionClamped && (
+                          <div
+                            className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+                            style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.92))' }}
+                          />
+                        )}
+                      </div>
                       {descriptionClamped && (
                         <Button
                           className="border border-gray-600 rounded-full px-3 text-sm text-gray-300"
@@ -473,7 +494,12 @@ const ItemView: React.FC = () => {
                   {isWatching ? 'Не буду смотреть' : 'Буду смотреть'}
                 </Button>
 
-                <Button icon="delete" onClick={() => setDeletePopupVisible(true)} className="text-gray-500 hover:text-red-500" iconOnly />
+                <Button
+                  icon="delete"
+                  onClick={() => setDeletePopupVisible(true)}
+                  className="border border-gray-500 text-gray-500 px-3 py-1.5 rounded-lg"
+                  iconOnly
+                />
               </div>
 
               {/* Popups */}
@@ -511,26 +537,20 @@ const ItemView: React.FC = () => {
         </div>
 
         {/* ── CONTENT ── */}
-        <div className="flex flex-col" style={{ padding: '48px 80px', gap: '48px' }}>
+        <div className="flex flex-col" style={{ padding: '48px 80px', gap: '48px', backgroundColor: '#0d0f14' }}>
           {/* Audio / Subtitles */}
           {(audios.length > 0 || subtitles.length > 0) && (
             <div className="flex flex-col" style={{ gap: '32px' }}>
               {audios.length > 0 && (
                 <div>
                   <Text className="text-gray-500 mb-2">Перевод</Text>
-                  <CollapsibleList maxVisible={4} className="flex flex-wrap">
+                  <CollapsibleList maxVisible={4} className="flex flex-wrap items-center">
                     {map(audios, (voice, idx) => (
                       <Text
+                        as="span"
                         key={idx}
-                        className="bg-gray-800 rounded-full text-sm"
-                        style={{
-                          padding: '4px 12px',
-                          lineHeight: '1.4',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          marginRight: '8px',
-                          marginBottom: '8px',
-                        }}
+                        className="border border-gray-600 rounded-full px-3 py-1 text-sm text-gray-300"
+                        style={{ display: 'inline-flex', alignItems: 'center', marginRight: '8px', marginBottom: '8px' }}
                       >
                         {voice.name}
                       </Text>
@@ -542,19 +562,13 @@ const ItemView: React.FC = () => {
               {subtitles.length > 0 && (
                 <div>
                   <Text className="text-gray-500 mb-2">Субтитры</Text>
-                  <CollapsibleList maxVisible={6} className="flex flex-wrap">
+                  <CollapsibleList maxVisible={6} className="flex flex-wrap items-center">
                     {map(subtitles, (subtitle, idx) => (
                       <Text
+                        as="span"
                         key={idx}
-                        className="bg-gray-800 rounded-full text-sm"
-                        style={{
-                          padding: '4px 12px',
-                          lineHeight: '1.4',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          marginRight: '8px',
-                          marginBottom: '8px',
-                        }}
+                        className="border border-gray-600 rounded-full px-3 py-1 text-sm text-gray-300"
+                        style={{ display: 'inline-flex', alignItems: 'center', marginRight: '8px', marginBottom: '8px' }}
                       >
                         {subtitle.name}
                       </Text>

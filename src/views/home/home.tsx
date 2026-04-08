@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import { Item, ItemsParams } from 'api';
+import Icon from 'components/icon';
 import ItemsList from 'components/itemsList';
 import Link from 'components/link';
 import Scrollable from 'components/scrollable';
@@ -25,7 +26,7 @@ const ItemsSection: React.FC<{ title: string; params: ItemsParams }> = ({ title,
             {title}
           </Link>
         }
-        titleClassName="ml-0"
+        titleClassName="ml-0 font-semibold border-l-2 border-red-600 pl-2"
         items={data?.items}
         loading={isLoading}
         scrollable={false}
@@ -94,9 +95,11 @@ const ContinueWatching: React.FC = () => {
       if (!seen.has(item.id)) ordered.push(item);
     }
 
-    return ordered.slice(0, 4).map((item) => ({ ...item, new: undefined }));
+    return ordered.slice(0, 8).map((item) => ({ ...item, new: undefined }));
   }, [serials?.items, movies?.items, historyData?.history]);
   const isLoading = serialsLoading || moviesLoading || historyLoading;
+
+  const [showAllFocused, setShowAllFocused] = useState(false);
 
   const handleShowAll = useCallback(() => {
     history.push(generatePath(PATHS.Watching, { watchingType: 'serials' }));
@@ -107,13 +110,39 @@ const ContinueWatching: React.FC = () => {
   return (
     <div className="pb-2 pt-4">
       <div className="flex flex-wrap">
-        {items.map((item) => (
+        {items.slice(0, 4).map((item) => (
           <VideoItem key={item.id} item={item} />
         ))}
-        <Spottable className="rounded-xl w-1/5 cursor-pointer" onClick={handleShowAll}>
-          <div className="h-72 m-1 flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-black bg-opacity-50">
-            <Text className="text-4xl text-gray-200 mb-2">▶</Text>
-            <Text className="text-gray-200 text-sm">Продолжить просмотр</Text>
+        <Spottable
+          className="rounded-xl w-1/5 cursor-pointer"
+          onClick={handleShowAll}
+          onFocus={() => setShowAllFocused(true)}
+          onBlur={() => setShowAllFocused(false)}
+        >
+          <div className="h-72 m-1 relative flex flex-col items-center justify-center rounded-xl bg-gray-900 overflow-hidden border border-white border-opacity-10">
+            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] z-10">
+              {[4, 5, 6, 7].map((idx) =>
+                items[idx]?.posters?.medium ? (
+                  <img key={idx} src={items[idx].posters.medium} className="w-full h-full object-cover" />
+                ) : (
+                  <div key={idx} className="w-full h-full bg-gray-800" />
+                ),
+              )}
+            </div>
+            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-20">
+              <div
+                className={
+                  showAllFocused ? 'rounded-full border-2 border-white' : 'rounded-full border-2 border-gray-300 border-opacity-70'
+                }
+                style={{ width: '5rem', height: '5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Icon
+                  name="arrow_forward"
+                  className={showAllFocused ? 'text-white' : 'text-gray-200'}
+                  style={{ fontSize: '3rem', lineHeight: '5rem', display: 'block', width: '3rem', textAlign: 'center' }}
+                />
+              </div>
+            </div>
           </div>
         </Spottable>
       </div>

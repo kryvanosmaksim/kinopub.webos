@@ -8,7 +8,7 @@
 }
 
 body {
-  @apply bg-black;
+  background-color: #000;
 }
 
 video {
@@ -28,6 +28,12 @@ video {
   @apply text-gray-200 !important;
 }
 
+nav .spottable:focus {
+  background: rgba(207, 6, 82, 0.12) !important;
+  box-shadow: inset 3px 0 0 #cf0652 !important;
+  color: #fff !important;
+}
+
 [class*='Slider_slider'].spottable:focus {
   background: transparent !important;
 }
@@ -41,12 +47,22 @@ video {
   line-height: 1.75rem !important;
 }
 
+[class*='MoonstoneDecorator_root'] > [class*='MoonstoneDecorator_bg'],
+[class*='MoonstoneDecorator_root'][class*='MoonstoneDecorator_bg'] {
+  background: radial-gradient(ellipse at 60% 40%, #1a1033 0%, #0d0f14 70%) !important;
+}
+
 [class*='Input_decorator'] {
-  @apply m-0 border border-gray-700 bg-gray-800 rounded-lg transition-colors overflow-hidden w-full h-14 pb-0 pt-0 !important;
+  @apply m-0 overflow-hidden w-full h-14 pb-0 pt-0 !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  transition: border-color 150ms, background 150ms !important;
 }
 
 [class*='Input_decorator'].spottable:focus {
-  @apply border-red-600 bg-gray-900 !important;
+  border-color: #cf0652 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 [class*='Input_decorator'] * {
@@ -84,17 +100,14 @@ video {
 }
 
 .badge-watched {
-  @apply px-3 font-bold text-white rounded tracking-wider bg-green-600 inline-flex items-center justify-center;
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  font-size: 18px;
-  line-height: 1;
-  height: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  display: inline-flex;
-  align-items: center;
+  @apply px-3 py-1 text-sm text-green-500 rounded-full inline-flex items-center justify-center;
+  border: 1px solid #166534;
   vertical-align: middle;
+}
+
+.spottable:focus .badge-watched {
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .watched-overlay {
