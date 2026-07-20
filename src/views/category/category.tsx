@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
-import { ItemType, ItemsParams } from 'api';
+import { Item, ItemType, ItemsParams } from 'api';
 import Seo from 'components/seo';
 import Text from 'components/text';
 import FilterItems from 'containers/filterItems';
@@ -8,6 +9,10 @@ import ItemsListInfinite from 'containers/itemsListInfinite';
 import useApiInfinite from 'hooks/useApiInfinite';
 import useSearchParams from 'hooks/useSearchParams';
 import useSessionState from 'hooks/useSessionState';
+import useStorageState from 'hooks/useStorageState';
+
+const CARTOON_ANIME_RE = /мультфильм|аниме|cartoon|anime|animation/i;
+const excludeCartoonsAndAnime = (items: Item[]) => items.filter((item) => !item.genres?.some((g) => CARTOON_ANIME_RE.test(g.title || '')));
 
 const CATEGORY_TYPES: Record<ItemType, string> = {
   movie: 'Фильмы',
@@ -28,6 +33,7 @@ const CategoryView: React.FC = () => {
   const location = useLocation<{ params?: ItemsParams; title?: string }>();
   const { params, title = getCategoryByType(categoryType) } = location.state || {};
   const [filterParams, setFilterParams] = useSessionState<ItemsParams | null>(`${categoryType}:filter:params`, null);
+  const [hideCartoonsAnime] = useStorageState<boolean>('hide_cartoons_anime_in_tvshow');
 
   const queryResult = useApiInfinite('items', [
     {
@@ -37,6 +43,11 @@ const CategoryView: React.FC = () => {
       type: categoryType,
     },
   ]);
+
+  const processItems = useMemo(
+    () => (categoryType === 'tvshow' && hideCartoonsAnime ? excludeCartoonsAndAnime : undefined),
+    [categoryType, hideCartoonsAnime],
+  );
 
   return (
     <>
@@ -49,6 +60,7 @@ const CategoryView: React.FC = () => {
           </>
         }
         queryResult={queryResult}
+        processItems={processItems}
       />
     </>
   );

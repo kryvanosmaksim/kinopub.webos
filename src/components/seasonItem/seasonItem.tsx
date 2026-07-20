@@ -4,7 +4,6 @@ import map from 'lodash/map';
 
 import { Item, Season, Video, WatchingStatus } from 'api';
 import Accordion from 'components/accordion';
-import Icon from 'components/icon';
 import ImageItem from 'components/imageItem';
 import Text from 'components/text';
 import { PATHS, generatePath } from 'routes';

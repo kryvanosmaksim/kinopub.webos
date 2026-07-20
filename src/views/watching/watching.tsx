@@ -4,7 +4,7 @@ import capitalize from 'lodash/capitalize';
 import map from 'lodash/map';
 import sumBy from 'lodash/sumBy';
 
-import { Item } from 'api';
+import { Bool, Item } from 'api';
 import ItemsList from 'components/itemsList';
 import Link from 'components/link';
 import Seo from 'components/seo';
@@ -22,30 +22,40 @@ type WatchingTypes = keyof typeof WATCHING_TYPES_MAP;
 const WatchingView: React.FC = () => {
   const { watchingType = 'serials' } = useParams<RouteParams>();
   const { data, isLoading } = useApi(`watching${capitalize(watchingType) as Capitalize<WatchingTypes>}`);
+  const { data: subscribedSerialsData } = useApi('watchingSerials', [Bool.True], { enabled: watchingType === 'serials' });
   const { data: historyData } = useApi('history', [1, 100]);
-  const total = useMemo(() => sumBy(data?.items, (item) => +(item.new || 0)), [data?.items]);
   const sortedItems = useMemo(() => {
-    const items = data?.items;
-    if (!items?.length) return items;
+    // Build a map seeded with the primary API result (has `new` episode counts).
+    // For the serials tab also fold in subscribed serials so that shows the user
+    // is following don't disappear after they catch up with available episodes.
+    const itemMap = new Map<string, Item>();
+    for (const item of data?.items || []) itemMap.set(item.id, item);
+    if (watchingType === 'serials') {
+      for (const item of subscribedSerialsData?.items || []) {
+        if (!itemMap.has(item.id)) itemMap.set(item.id, item);
+      }
+    }
 
-    const watchingIds = new Set(items.map((i) => i.id));
+    if (!itemMap.size) return data?.items;
+
     const seen = new Set<string>();
     const ordered: Item[] = [];
 
     for (const h of historyData?.history || []) {
       const id = h.item?.id;
-      if (id && watchingIds.has(id) && !seen.has(id)) {
+      if (id && itemMap.has(id) && !seen.has(id)) {
         seen.add(id);
-        ordered.push(items.find((i) => i.id === id)!);
+        ordered.push(itemMap.get(id)!);
       }
     }
 
-    for (const item of items) {
-      if (!seen.has(item.id)) ordered.push(item);
+    for (const [id, item] of itemMap) {
+      if (!seen.has(id)) ordered.push(item);
     }
 
     return ordered;
-  }, [data?.items, historyData?.history]);
+  }, [data?.items, subscribedSerialsData?.items, historyData?.history, watchingType]);
+  const total = useMemo(() => sumBy(sortedItems, (item) => +(item.new || 0)), [sortedItems]);
 
   const seoTitle = watchingType === 'serials' ? 'Новые эпизоды' : 'Недосмотренные фильмы';
   const title = total ? `${seoTitle} (${total})` : seoTitle;

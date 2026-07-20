@@ -12,6 +12,7 @@ import Select from 'components/select';
 import useApi from 'hooks/useApi';
 import useButtonEffect from 'hooks/useButtonEffect';
 import useSessionState from 'hooks/useSessionState';
+import useStorageState from 'hooks/useStorageState';
 
 const GENDER_TYPES_MAP: Record<ItemType, GenderType> = {
   movie: 'movie',
@@ -87,6 +88,7 @@ const FilterItems: React.FC<FilterItemsProps> = ({ type, defaultGenre, storageKe
   const [onlyAC3, setOnlyAC3] = useSessionState<boolean>(`${storageKey}:filter:onlyAC3`, false);
   const [skipAds, setSkipAds] = useSessionState<boolean>(`${storageKey}:filter:skipAds`, false);
   const [skipErotic, setSkipErotic] = useSessionState<boolean>(`${storageKey}:filter:skipErotic`, false);
+  const [hideCartoonsAnime, setHideCartoonsAnime] = useStorageState<boolean>('hide_cartoons_anime_in_tvshow');
 
   const gendersForType = useMemo(() => genders?.items?.filter?.((gender) => gender.type === GENDER_TYPES_MAP[type]), [genders, type]);
 
@@ -359,6 +361,11 @@ const FilterItems: React.FC<FilterItemsProps> = ({ type, defaultGenre, storageKe
             <Checkbox checked={onlyAC3} onChange={(checked) => setOnlyAC3(checked)} disabled>
               Только AC3
             </Checkbox>
+            {type === 'tvshow' && (
+              <Checkbox checked={!!hideCartoonsAnime} onChange={(checked) => setHideCartoonsAnime(checked)}>
+                Скрыть мультфильмы и аниме
+              </Checkbox>
+            )}
           </div>
         </div>
 
